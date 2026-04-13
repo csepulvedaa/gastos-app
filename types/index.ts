@@ -1,0 +1,40 @@
+export type SplitType = '70_30' | '50_50' | 'personal'
+
+export type Category =
+  | 'groceries'
+  | 'rent'
+  | 'utilities'
+  | 'transport'
+  | 'dining'
+  | 'health'
+  | 'entertainment'
+  | 'travel'
+  | 'other'
+
+export interface Profile {
+  id: string
+  name: string
+  email: string
+}
+
+export interface Expense {
+  id: string
+  paid_by: string
+  payer_name: string
+  amount: number
+  description: string
+  category: Category
+  split: SplitType
+  expense_date: string
+  created_at: string
+}
+
+export interface BalanceResult {
+  totalSpent: number
+  cristobalPaid: number
+  valentinaPaid: number
+  cristobalOwes: number
+  valentinaOwes: number
+  transferAmount: number
+  transferDirection: 'cristobal_to_valentina' | 'valentina_to_cristobal' | 'settled'
+}
