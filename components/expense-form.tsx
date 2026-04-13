@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Calendar } from 'lucide-react'
 import { CATEGORY_ICONS, CATEGORY_LABELS, SPLIT_LABELS, SPLIT_DESCRIPTIONS } from '@/lib/constants'
 import type { Category, SplitType, Profile } from '@/types'
 
@@ -25,6 +26,7 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const dateRef = useRef<HTMLInputElement>(null)
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<Category>('other')
@@ -123,13 +125,13 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
         <Label>¿Cómo se divide?</Label>
         <RadioGroup value={split} onValueChange={(v) => setSplit(v as SplitType)} className="space-y-2">
           {SPLITS.map((s) => (
-            <div key={s} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${split === s ? 'border-blue-500 bg-blue-50' : 'border-slate-200'}`}>
-              <RadioGroupItem value={s} id={s} className="mt-0.5" />
-              <Label htmlFor={s} className="cursor-pointer space-y-0.5">
+            <Label key={s} htmlFor={s} className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${split === s ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+              <RadioGroupItem value={s} id={s} className="mt-0.5 shrink-0" />
+              <div className="space-y-0.5">
                 <p className="font-medium">{SPLIT_LABELS[s]}</p>
                 <p className="text-xs text-slate-500">{SPLIT_DESCRIPTIONS[s]}</p>
-              </Label>
-            </div>
+              </div>
+            </Label>
           ))}
         </RadioGroup>
       </div>
@@ -137,13 +139,21 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
       {/* Fecha */}
       <div className="space-y-2">
         <Label htmlFor="date">Fecha</Label>
-        <Input
-          id="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-        />
+        <div
+          className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 text-sm cursor-pointer"
+          onClick={() => dateRef.current?.showPicker()}
+        >
+          <input
+            ref={dateRef}
+            id="date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            className="flex-1 bg-transparent outline-none [color-scheme:light] [&::-webkit-calendar-picker-indicator]:hidden"
+          />
+          <Calendar className="h-4 w-4 text-slate-400 shrink-0 pointer-events-none" />
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
