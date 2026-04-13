@@ -1,5 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Documentación local de Claude (no subir al repo)
+/docs
+
 # dependencies
 /node_modules
 /.pnp
