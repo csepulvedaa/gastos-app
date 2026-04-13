@@ -1,110 +1,110 @@
 # 💰 Gastos App
 
-App web para registrar y dividir gastos compartidos en pareja. Instalable en iOS como PWA.
+A web app to track and split shared expenses as a couple. Installable on iOS as a PWA.
 
 ## Features
 
-- **Login** con email y contraseña (2 usuarios)
-- **Agregar gastos** manualmente: monto, descripción, categoría, quién pagó y tipo de división
-- **Split configurable**: 70/30 (cuentas del hogar) o 50/50 (partes iguales) o personal
-- **Balance mensual**: calcula automáticamente quién le debe cuánto a quién
-- **Historial** navegable por mes
-- **Email automático** el día 1 de cada mes con el resumen del mes anterior
-- **PWA**: se instala en iOS desde Safari como app nativa
+- **Login** with email and password (2 users)
+- **Add expenses** manually: amount, description, category, who paid, and split type
+- **Configurable split**: 70/30 (household bills) · 50/50 (equal share) · personal (no split)
+- **Monthly balance**: automatically calculates who owes whom and how much
+- **History** browsable by month
+- **Automatic email** on the 1st of each month with the previous month's summary
+- **PWA**: installable on iOS from Safari as a native-like app
 
-## Stack
+## Tech Stack
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | Frontend | Next.js 14 (App Router) + TypeScript |
 | UI | Tailwind CSS + shadcn/ui |
-| Base de datos | Supabase (PostgreSQL) |
-| Autenticación | Supabase Auth |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth |
 | Email | Resend |
 | Hosting | Vercel |
 | Cron | Vercel Cron Jobs |
 
-## Lógica de split
+## Split Logic
 
 ```
-70/30 → Cristóbal paga 70%, Valentina paga 30%
-50/50 → Cada uno paga la mitad
-Personal → Solo lo paga quien lo registró (no entra al balance)
+70/30 → Cristóbal pays 70%, Valentina pays 30%
+50/50 → Each person pays half
+Personal → Only the payer is responsible (excluded from balance)
 ```
 
-El balance final indica quién debe transferirle a quién y cuánto.
+The monthly balance determines who transfers to whom and the exact amount.
 
-## Desarrollo local
+## Local Development
 
-### Requisitos
+### Requirements
 - Node.js 18+
-- Cuenta en [Supabase](https://supabase.com)
-- Cuenta en [Resend](https://resend.com)
+- [Supabase](https://supabase.com) account
+- [Resend](https://resend.com) account
 
 ### Setup
 
 ```bash
-# Clonar
+# Clone the repo
 git clone https://github.com/csepulvedaa/gastos-app.git
 cd gastos-app
 
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Variables de entorno
+# Set up environment variables
 cp .env.example .env.local
-# Editar .env.local con tus credenciales de Supabase y Resend
+# Fill in .env.local with your Supabase and Resend credentials
 
-# Correr en local
+# Start the dev server
 npm run dev
 ```
 
-Abrir http://localhost:3000
+Open http://localhost:3000
 
-### Base de datos
+### Database
 
-En el SQL Editor de Supabase, ejecutar `supabase/schema.sql` para crear las tablas y políticas RLS.
+Run `supabase/schema.sql` in the Supabase SQL Editor to create all tables and RLS policies.
 
-## Variables de entorno
+## Environment Variables
 
-| Variable | Descripción |
+| Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key de Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (solo server) |
-| `RESEND_API_KEY` | API key de Resend |
-| `EMAIL_FROM` | Email remitente verificado |
-| `CRISTOBAL_EMAIL` | Email del usuario principal |
-| `VALENTINA_EMAIL` | Email del segundo usuario |
-| `CRON_SECRET` | Secret para proteger el endpoint del cron |
-| `NEXT_PUBLIC_APP_URL` | URL pública de la app en producción |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server only) |
+| `RESEND_API_KEY` | Resend API key |
+| `EMAIL_FROM` | Verified sender email address |
+| `CRISTOBAL_EMAIL` | Primary user email |
+| `VALENTINA_EMAIL` | Secondary user email |
+| `CRON_SECRET` | Secret to protect the cron endpoint |
+| `NEXT_PUBLIC_APP_URL` | Public URL of the deployed app |
 
 ## Deploy
 
-La app está configurada para desplegarse en Vercel con un cron job que corre el día 1 de cada mes a las 12:00 UTC (envía el email de resumen).
+Configured for Vercel with a cron job that runs on the 1st of every month at 12:00 UTC to send the monthly summary email.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/csepulvedaa/gastos-app)
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 app/
-  (auth)/login/       → Pantalla de login
-  (app)/dashboard/    → Balance y gastos del mes actual
-  (app)/add/          → Formulario nuevo gasto
-  (app)/history/      → Historial por mes
-  api/expenses/       → API REST de gastos
-  api/cron/           → Endpoint del resumen mensual
+  (auth)/login/       → Login screen
+  (app)/dashboard/    → Current month balance and expenses
+  (app)/add/          → Add new expense form
+  (app)/history/      → Month-by-month history
+  api/expenses/       → Expenses REST API
+  api/cron/           → Monthly summary cron endpoint
 components/
-  balance-summary.tsx → Muestra quién debe a quién
-  expense-form.tsx    → Formulario de gasto
-  expense-card.tsx    → Tarjeta individual de gasto
-  expense-list.tsx    → Lista agrupada por fecha
-  nav-bar.tsx         → Navegación inferior (PWA)
+  balance-summary.tsx → Shows who owes whom
+  expense-form.tsx    → Expense entry form
+  expense-card.tsx    → Single expense row with delete
+  expense-list.tsx    → Expenses grouped by date
+  nav-bar.tsx         → Bottom navigation bar (PWA)
 lib/
-  balance.ts          → Cálculo del split y balance
-  email.ts            → Template y envío de email
-  supabase/           → Clientes de Supabase (browser y server)
+  balance.ts          → Split and balance calculation logic
+  email.ts            → Email template and sending
+  supabase/           → Supabase clients (browser and server)
 supabase/
-  schema.sql          → Schema completo + RLS
+  schema.sql          → Full schema + RLS policies
 ```
