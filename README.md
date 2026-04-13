@@ -16,7 +16,7 @@ A web app to track and split shared expenses as a couple. Installable on iOS as 
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 14 (App Router) + TypeScript |
+| Frontend | Next.js 16 (App Router) + TypeScript |
 | UI | Tailwind CSS + shadcn/ui |
 | Database | Supabase (PostgreSQL) |
 | Auth | Supabase Auth |
@@ -64,20 +64,29 @@ Open http://localhost:3000
 ### Database
 
 Run `supabase/schema.sql` in the Supabase SQL Editor to create all tables and RLS policies.
+Then create both users in **Authentication > Users** and insert their profiles:
+
+```sql
+INSERT INTO profiles (id, name, email) VALUES
+  ('<UUID-USER-1>', 'Cristóbal', 'user1@email.com'),
+  ('<UUID-USER-2>', 'Valentina', 'user2@email.com');
+```
 
 ## Environment Variables
 
 | Variable | Description |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server only) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable key (`sb_publishable_*`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase secret key — server only (`sb_secret_*`) |
 | `RESEND_API_KEY` | Resend API key |
 | `EMAIL_FROM` | Verified sender email address |
 | `CRISTOBAL_EMAIL` | Primary user email |
 | `VALENTINA_EMAIL` | Secondary user email |
 | `CRON_SECRET` | Secret to protect the cron endpoint |
 | `NEXT_PUBLIC_APP_URL` | Public URL of the deployed app |
+
+> **Note:** Supabase now uses `sb_publishable_*` and `sb_secret_*` key formats instead of the legacy JWT (`eyJ...`) format. Both work with `@supabase/ssr`.
 
 ## Deploy
 
@@ -107,4 +116,5 @@ lib/
   supabase/           → Supabase clients (browser and server)
 supabase/
   schema.sql          → Full schema + RLS policies
+proxy.ts              → Auth route protection (Next.js 16)
 ```
