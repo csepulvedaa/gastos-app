@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { addMonths } from '@/lib/utils'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -29,14 +30,6 @@ export async function GET(request: Request) {
   return NextResponse.json(expenses)
 }
 
-/** Adds `n` months to a YYYY-MM-DD string, preserving the day (clamped to month end). */
-function addMonths(dateStr: string, n: number): string {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  const d = new Date(year, month - 1 + n, 1)
-  const maxDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
-  d.setDate(Math.min(day, maxDay))
-  return d.toISOString().split('T')[0]
-}
 
 export async function POST(request: Request) {
   const supabase = await createClient()
