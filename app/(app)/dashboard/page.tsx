@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BalanceSummary from '@/components/balance-summary'
 import ExpenseList from '@/components/expense-list'
+import SettleButton from '@/components/settle-button'
 import { Button } from '@/components/ui/button'
 import type { Expense, Profile } from '@/types'
 
@@ -21,7 +22,7 @@ export default async function DashboardPage() {
 
   const monthName = now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 
-  const [{ data: profiles }, { data: expenses }, { data: futureInstallments }] = await Promise.all([
+  const [{ data: profiles }, { data: expenses }, { data: futureInstallments }, { data: settlement }] = await Promise.all([
     supabase.from('profiles').select('id, name, email'),
     supabase
       .from('expenses')
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
       .select('amount, split, paid_by, installment_group_id, installment_index, installment_total')
       .not('installment_group_id', 'is', null)
       .gte('expense_date', endDate),
+    supabase.from('settlements').select('*').eq('year', year).eq('month', month).maybeSingle(),
   ])
 
   const cristobal = (profiles as Profile[])?.find((p) => p.id === user.id)
@@ -58,12 +60,23 @@ export default async function DashboardPage() {
       </div>
 
       {cristobal && valentina ? (
-        <BalanceSummary
-          expenses={expensesList}
-          cristobalId={cristobal.id}
-          valentinaId={valentina.id}
-          futureInstallments={futureInstallments ?? []}
-        />
+        <>
+          <BalanceSummary
+            expenses={expensesList}
+            cristobalId={cristobal.id}
+            valentinaId={valentina.id}
+            futureInstallments={futureInstallments ?? []}
+            settlement={settlement}
+          />
+          <SettleButton
+            year={year}
+            month={month}
+            expenses={expensesList}
+            cristobalId={cristobal.id}
+            valentinaId={valentina.id}
+            settlement={settlement}
+          />
+        </>
       ) : null}
 
       <div>

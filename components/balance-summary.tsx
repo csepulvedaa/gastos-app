@@ -12,9 +12,10 @@ interface Props {
   cristobalId: string
   valentinaId: string
   futureInstallments: FutureInstallment[]
+  settlement?: { amount: number; from_user: string; settled_at: string } | null
 }
 
-export default function BalanceSummary({ expenses, cristobalId, valentinaId, futureInstallments }: Props) {
+export default function BalanceSummary({ expenses, cristobalId, valentinaId, futureInstallments, settlement }: Props) {
   const balance = calculateBalance(expenses, cristobalId, valentinaId)
 
   // Total pending debt from future installments (what each person will owe in coming months)
@@ -49,10 +50,12 @@ export default function BalanceSummary({ expenses, cristobalId, valentinaId, fut
   return (
     <div className="space-y-3">
       {/* Transferencia */}
-      <div className={`rounded-xl border p-4 text-center ${transferColor}`}>
-        <p className="text-sm font-medium">{transferText}</p>
+      <div className={`rounded-xl border p-4 text-center ${settlement ? 'bg-green-50 border-green-200 text-green-800' : transferColor}`}>
+        <p className="text-sm font-medium">{settlement ? '✅ Mes liquidado' : transferText}</p>
         {balance.transferDirection !== 'settled' && (
-          <p className="text-3xl font-bold mt-1">{formatCLP(balance.transferAmount)}</p>
+          <p className={`text-3xl font-bold mt-1 ${settlement ? 'line-through opacity-50' : ''}`}>
+            {formatCLP(balance.transferAmount)}
+          </p>
         )}
         {hasFutureDebt && balance.transferDirection !== 'settled' && (
           <p className="text-xs text-slate-400 mt-2">
