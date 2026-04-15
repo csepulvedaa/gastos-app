@@ -52,6 +52,10 @@ CREATE POLICY "expenses_select" ON expenses
 CREATE POLICY "expenses_insert" ON expenses
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
+-- Expenses: solo el pagador puede actualizar su gasto
+CREATE POLICY "expenses_update_own" ON expenses
+  FOR UPDATE USING (auth.uid() = paid_by) WITH CHECK (auth.uid() = paid_by);
+
 -- Expenses: solo el pagador puede eliminar su gasto
 CREATE POLICY "expenses_delete_own" ON expenses
   FOR DELETE USING (auth.uid() = paid_by);
