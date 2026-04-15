@@ -4,6 +4,7 @@ import type { Expense } from '@/types'
 interface Props {
   expenses: Expense[]
   currentUserId: string
+  onDeleted?: () => void
 }
 
 function groupByDate(expenses: Expense[]) {
@@ -20,7 +21,7 @@ function formatDateHeader(dateStr: string) {
   return date.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export default function ExpenseList({ expenses, currentUserId }: Props) {
+export default function ExpenseList({ expenses, currentUserId, onDeleted }: Props) {
   if (expenses.length === 0) {
     return (
       <div className="text-center py-12 text-slate-400">
@@ -42,7 +43,7 @@ export default function ExpenseList({ expenses, currentUserId }: Props) {
           </p>
           <div className="space-y-2">
             {grouped[date].map((expense) => (
-              <ExpenseCard key={expense.id} expense={expense} currentUserId={currentUserId} />
+              <ExpenseCard key={expense.id} expense={expense} currentUserId={currentUserId} onDeleted={onDeleted} />
             ))}
           </div>
         </div>

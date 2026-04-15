@@ -17,9 +17,10 @@ import type { Expense } from '@/types'
 interface Props {
   expense: Expense
   currentUserId: string
+  onDeleted?: () => void
 }
 
-export default function ExpenseCard({ expense, currentUserId }: Props) {
+export default function ExpenseCard({ expense, currentUserId, onDeleted }: Props) {
   const [deleting, setDeleting] = useState(false)
   const router = useRouter()
   const isOwner = currentUserId === expense.paid_by
@@ -34,7 +35,7 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
       ? `/api/expenses/${expense.id}?deleteGroup=true`
       : `/api/expenses/${expense.id}`
     await fetch(url, { method: 'DELETE' })
-    router.refresh()
+    onDeleted ? onDeleted() : router.refresh()
   }
 
   return (

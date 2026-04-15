@@ -15,6 +15,7 @@ export default function HistoryPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [userId, setUserId] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const supabase = createClient()
 
@@ -46,7 +47,7 @@ export default function HistoryPage() {
         )
         setLoading(false)
       })
-  }, [year, month])
+  }, [year, month, refreshKey])
 
   function prevMonth() {
     if (month === 1) { setMonth(12); setYear(y => y - 1) }
@@ -86,7 +87,7 @@ export default function HistoryPage() {
           {cristobal && valentina && expenses.length > 0 && (
             <BalanceSummary expenses={expenses} cristobalId={cristobal.id} valentinaId={valentina.id} futureInstallments={[]} />
           )}
-          <ExpenseList expenses={expenses} currentUserId={userId} />
+          <ExpenseList expenses={expenses} currentUserId={userId} onDeleted={() => setRefreshKey(k => k + 1)} />
         </>
       )}
     </div>
