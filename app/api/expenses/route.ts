@@ -57,8 +57,9 @@ export async function POST(request: Request) {
 
   if (isInstallment) {
     const groupId = crypto.randomUUID()
+    const amountPerInstallment = Math.round(amount / installments)
     const rows = Array.from({ length: installments }, (_, i) => ({
-      amount: Math.round(amount),
+      amount: amountPerInstallment,
       description: description.trim(),
       category: category ?? 'other',
       split,
@@ -69,20 +70,29 @@ export async function POST(request: Request) {
       installment_total: installments,
     }))
 
+    console.log('[POST /api/expenses] inserting installments:', JSON.stringify(rows, null, 2))
     const { data, error } = await supabase.from('expenses').insert(rows).select()
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    if (error) {
+      console.error('[POST /api/expenses] installment insert error:', error)
+      return NextResponse.json({ error: error.message, details: error }, { status: 500 })
+    }
     return NextResponse.json(data, { status: 201 })
   }
 
-  const { data, error } = await supabase.from('expenses').insert({
+  const payload = {
     amount: Math.round(amount),
     description: description.trim(),
     category: category ?? 'other',
     split,
     paid_by: paidBy,
     expense_date: baseDate,
-  }).select().single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  console.log('[POST /api/expenses] inserting:', JSON.stringify(payload, null, 2))
+  const { data, error } = await supabase.from('expenses').insert(payload).select().single()
+  if (error) {
+    console.error('[POST /api/expenses] insert error:', error)
+    return NextResponse.json({ error: error.message, details: error }, { status: 500 })
+  }
   return NextResponse.json(data, { status: 201 })
 }

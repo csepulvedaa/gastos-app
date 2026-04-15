@@ -195,6 +195,15 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
 
         {isInstallment && (
           <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 space-y-3">
+            {amount && parseInt(amount.replace(/\D/g, ''), 10) > 0 && (
+              <p className="text-sm font-medium text-blue-700 text-center">
+                {installmentTotal} cuotas de{' '}
+                <span className="font-bold">
+                  ${Math.round(parseInt(amount.replace(/\D/g, ''), 10) / installmentTotal).toLocaleString('es-CL')}
+                </span>
+                /mes
+              </p>
+            )}
             <div className="space-y-2">
               <Label className="text-xs text-slate-500">Número de cuotas</Label>
               <div className="flex gap-2">
