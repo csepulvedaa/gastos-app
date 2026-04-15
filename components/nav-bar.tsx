@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, PlusCircle, Clock } from 'lucide-react'
+import { Home, PlusCircle, Clock, BarChart2 } from 'lucide-react'
 
 const tabs = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/add', label: 'Agregar', icon: PlusCircle },
   { href: '/history', label: 'Historial', icon: Clock },
+  { href: '/stats', label: 'Stats', icon: BarChart2 },
 ]
 
 export default function NavBar() {

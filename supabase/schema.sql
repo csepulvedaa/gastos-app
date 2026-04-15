@@ -60,6 +60,29 @@ CREATE POLICY "expenses_update_own" ON expenses
 CREATE POLICY "expenses_delete_own" ON expenses
   FOR DELETE USING (auth.uid() = paid_by);
 
+-- 3. Liquidaciones mensuales
+CREATE TABLE IF NOT EXISTS settlements (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  year        INT         NOT NULL,
+  month       INT         NOT NULL,
+  amount      INTEGER     NOT NULL,
+  from_user   UUID        NOT NULL REFERENCES profiles(id),
+  to_user     UUID        NOT NULL REFERENCES profiles(id),
+  settled_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (year, month)
+);
+
+ALTER TABLE settlements ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "settlements_select" ON settlements
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "settlements_insert" ON settlements
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "settlements_delete" ON settlements
+  FOR DELETE USING (auth.uid() = from_user OR auth.uid() = to_user);
+
 -- ─────────────────────────────────────────────────────────────
 -- Seed: correr DESPUÉS de crear los usuarios en Auth > Users
 -- Reemplazar los UUIDs con los generados por Supabase
