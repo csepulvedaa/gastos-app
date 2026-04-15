@@ -27,6 +27,13 @@ export function calculateBalance(
     } else if (expense.split === '50_50') {
       cristobalOwes += amount * 0.5
       valentinaOwes += amount * 0.5
+    } else if (expense.split === 'lent') {
+      // Payer fronted the money; the other person owes 100%
+      if (expense.paid_by === cristobalId) {
+        valentinaOwes += amount
+      } else {
+        cristobalOwes += amount
+      }
     } else {
       // personal: only the payer owes
       if (expense.paid_by === cristobalId) {

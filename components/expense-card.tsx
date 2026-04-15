@@ -22,10 +22,17 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
   const [deleting, setDeleting] = useState(false)
   const router = useRouter()
   const isOwner = currentUserId === expense.paid_by
+  const isInstallment = !!expense.installment_total && expense.installment_total > 1
+  const remainingInstallments = isInstallment
+    ? expense.installment_total! - expense.installment_index! + 1
+    : 0
 
-  async function handleDelete() {
+  async function handleDelete(deleteGroup: boolean) {
     setDeleting(true)
-    await fetch(`/api/expenses/${expense.id}`, { method: 'DELETE' })
+    const url = deleteGroup
+      ? `/api/expenses/${expense.id}?deleteGroup=true`
+      : `/api/expenses/${expense.id}`
+    await fetch(url, { method: 'DELETE' })
     router.refresh()
   }
 
@@ -42,6 +49,16 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
           <Badge variant="outline" className="text-xs py-0">
             {SPLIT_LABELS[expense.split]}
           </Badge>
+          {isInstallment && (
+            <>
+              <Badge variant="outline" className="text-xs py-0 border-blue-200 text-blue-600">
+                Cuota {expense.installment_index}/{expense.installment_total}
+              </Badge>
+              <span className="text-xs text-slate-400">
+                total {formatCLP(expense.amount * expense.installment_total!)}
+              </span>
+            </>
+          )}
           <span className="text-xs text-slate-400">pagó {expense.payer_name}</span>
         </div>
       </div>
@@ -59,14 +76,34 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
               <AlertDialogHeader>
                 <AlertDialogTitle>¿Eliminar gasto?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Se eliminará &ldquo;{expense.description}&rdquo; de {formatCLP(expense.amount)}. Esta acción no se puede deshacer.
+                  {isInstallment
+                    ? `"${expense.description}" — cuota ${expense.installment_index} de ${expense.installment_total}. ¿Qué deseas eliminar?`
+                    : `Se eliminará "${expense.description}" de ${formatCLP(expense.amount)}. Esta acción no se puede deshacer.`
+                  }
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter className={isInstallment ? 'flex-col gap-2 sm:flex-col' : undefined}>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                  Eliminar
-                </AlertDialogAction>
+                {isInstallment ? (
+                  <>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(false)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Solo esta cuota
+                    </AlertDialogAction>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(true)}
+                      className="bg-red-800 hover:bg-red-900"
+                    >
+                      Esta y las {remainingInstallments - 1} restantes
+                    </AlertDialogAction>
+                  </>
+                ) : (
+                  <AlertDialogAction onClick={() => handleDelete(false)} className="bg-red-600 hover:bg-red-700">
+                    Eliminar
+                  </AlertDialogAction>
+                )}
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

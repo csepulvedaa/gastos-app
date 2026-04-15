@@ -7,12 +7,14 @@ export const SPLIT_LABELS: Record<SplitType, string> = {
   '70_30': '70/30 (cuenta compartida)',
   '50_50': '50/50 (partes iguales)',
   personal: 'Personal (solo yo)',
+  lent: 'Préstamo (cobrar al otro)',
 }
 
 export const SPLIT_DESCRIPTIONS: Record<SplitType, string> = {
   '70_30': 'Cristóbal 70% · Valentina 30%',
   '50_50': 'Cada uno paga la mitad',
   personal: 'No se divide',
+  lent: 'Pagué yo, debe el 100% la otra persona',
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {

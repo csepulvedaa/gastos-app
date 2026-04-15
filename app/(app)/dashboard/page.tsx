@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   const monthName = now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 
-  const [{ data: profiles }, { data: expenses }] = await Promise.all([
+  const [{ data: profiles }, { data: expenses }, { data: futureInstallments }] = await Promise.all([
     supabase.from('profiles').select('id, name, email'),
     supabase
       .from('expenses')
@@ -29,6 +29,12 @@ export default async function DashboardPage() {
       .gte('expense_date', startDate)
       .lt('expense_date', endDate)
       .order('expense_date', { ascending: false }),
+    // Installment expenses from next month onwards (endDate = first day of next month)
+    supabase
+      .from('expenses')
+      .select('amount, split, paid_by, installment_group_id, installment_index, installment_total')
+      .not('installment_group_id', 'is', null)
+      .gte('expense_date', endDate),
   ])
 
   const cristobal = (profiles as Profile[])?.find((p) => p.id === user.id)
@@ -56,6 +62,7 @@ export default async function DashboardPage() {
           expenses={expensesList}
           cristobalId={cristobal.id}
           valentinaId={valentina.id}
+          futureInstallments={futureInstallments ?? []}
         />
       ) : null}
 

@@ -54,13 +54,10 @@ export default function HistoryPage() {
   }
 
   function nextMonth() {
-    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
-    if (isCurrentMonth) return
     if (month === 12) { setMonth(1); setYear(y => y + 1) }
     else setMonth(m => m + 1)
   }
 
-  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
   const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 
   const cristobal = profiles.find((p) => p.id === userId)
@@ -76,8 +73,7 @@ export default function HistoryPage() {
         <h1 className="text-lg font-bold text-slate-800 capitalize">{monthLabel}</h1>
         <button
           onClick={nextMonth}
-          disabled={isCurrentMonth}
-          className="p-2 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-30"
+          className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
         >
           <ChevronRight size={20} />
         </button>
@@ -88,7 +84,7 @@ export default function HistoryPage() {
       ) : (
         <>
           {cristobal && valentina && expenses.length > 0 && (
-            <BalanceSummary expenses={expenses} cristobalId={cristobal.id} valentinaId={valentina.id} />
+            <BalanceSummary expenses={expenses} cristobalId={cristobal.id} valentinaId={valentina.id} futureInstallments={[]} />
           )}
           <ExpenseList expenses={expenses} currentUserId={userId} />
         </>
