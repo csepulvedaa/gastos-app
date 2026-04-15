@@ -32,20 +32,39 @@ function getLastSixMonths(): { year: number; month: number; label: string }[] {
   return result
 }
 
+function getNextMonths(n: number): { year: number; month: number; label: string }[] {
+  const result = []
+  const now = new Date()
+  for (let i = 1; i <= n; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+    result.push({
+      year: d.getFullYear(),
+      month: d.getMonth() + 1,
+      label: d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' }),
+    })
+  }
+  return result
+}
+
 export default function StatsPage() {
   const [expenses, setExpenses] = useState<Expense[]>([])
+  const [futureInstallments, setFutureInstallments] = useState<Expense[]>([])
   const [profiles, setProfiles] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const months = getLastSixMonths()
 
   useEffect(() => {
+    const now = new Date()
     const first = months[0]
     const last = months[months.length - 1]
     const startDate = `${first.year}-${String(first.month).padStart(2, '0')}-01`
     const nextMonth = last.month === 12 ? 1 : last.month + 1
     const nextYear = last.month === 12 ? last.year + 1 : last.year
     const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
+    // Future installments: from next month onwards
+    const futureStartDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    const futureStart = `${futureStartDate.getFullYear()}-${String(futureStartDate.getMonth() + 1).padStart(2, '0')}-01`
 
     Promise.all([
       supabase.from('profiles').select('id, name'),
@@ -54,9 +73,15 @@ export default function StatsPage() {
         .select('*')
         .gte('expense_date', startDate)
         .lt('expense_date', endDate),
-    ]).then(([{ data: p }, { data: e }]) => {
+      supabase
+        .from('expenses')
+        .select('*')
+        .gte('expense_date', futureStart)
+        .not('installment_group_id', 'is', null),
+    ]).then(([{ data: p }, { data: e }, { data: fi }]) => {
       setProfiles(p ?? [])
       setExpenses(e ?? [])
+      setFutureInstallments(fi ?? [])
       setLoading(false)
     })
   }, [])
@@ -106,6 +131,24 @@ export default function StatsPage() {
     }
     return result
   })
+
+  // Chart 4: gastos futuros por cuotas
+  const nextMonths = getNextMonths(12)
+  const rawFutureData = nextMonths.map(({ year, month, label }) => {
+    const total = futureInstallments
+      .filter(e => {
+        const [y, m] = e.expense_date.split('-').map(Number)
+        return y === year && m === month
+      })
+      .reduce((sum, e) => sum + e.amount, 0)
+    return { label, total, year, month }
+  })
+  // Trim trailing months with no data
+  let lastNonZero = -1
+  for (let i = rawFutureData.length - 1; i >= 0; i--) {
+    if (rawFutureData[i].total > 0) { lastNonZero = i; break }
+  }
+  const futureData = lastNonZero >= 0 ? rawFutureData.slice(0, lastNonZero + 1) : []
 
   const p1 = profiles[0]
   const p2 = profiles[1]
@@ -205,6 +248,29 @@ export default function StatsPage() {
           </div>
         </div>
       )}
+
+      {/* Chart 4 — Cuotas futuras */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold text-slate-600">Cuotas comprometidas — próximos meses</h2>
+        {futureData.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-6">Sin cuotas futuras registradas</p>
+        ) : (
+          <div className="bg-white rounded-xl border border-slate-100 p-3">
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={futureData} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={formatM} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f1f5f9' }} />
+                <Bar dataKey="total" name="Cuotas" radius={[4, 4, 0, 0]}>
+                  {futureData.map((_, i) => (
+                    <Cell key={i} fill="#0891b2" fillOpacity={1 - i * 0.07} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
