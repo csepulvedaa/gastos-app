@@ -21,8 +21,6 @@ export default async function DashboardPage() {
 
   const monthName = now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 
-  const today = now.toISOString().split('T')[0]
-
   const [{ data: profiles }, { data: expenses }, { data: futureInstallments }] = await Promise.all([
     supabase.from('profiles').select('id, name, email'),
     supabase
@@ -31,12 +29,12 @@ export default async function DashboardPage() {
       .gte('expense_date', startDate)
       .lt('expense_date', endDate)
       .order('expense_date', { ascending: false }),
-    // All installment expenses from today onwards (pending future cuotas)
+    // Installment expenses from next month onwards (endDate = first day of next month)
     supabase
       .from('expenses')
-      .select('amount, split, paid_by, expense_date, installment_group_id, installment_index, installment_total')
+      .select('amount, split, paid_by, installment_group_id, installment_index, installment_total')
       .not('installment_group_id', 'is', null)
-      .gt('expense_date', endDate),  // strictly after this month
+      .gte('expense_date', endDate),
   ])
 
   const cristobal = (profiles as Profile[])?.find((p) => p.id === user.id)

@@ -50,9 +50,14 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
             {SPLIT_LABELS[expense.split]}
           </Badge>
           {isInstallment && (
-            <Badge variant="outline" className="text-xs py-0 border-blue-200 text-blue-600">
-              Cuota {expense.installment_index}/{expense.installment_total}
-            </Badge>
+            <>
+              <Badge variant="outline" className="text-xs py-0 border-blue-200 text-blue-600">
+                Cuota {expense.installment_index}/{expense.installment_total}
+              </Badge>
+              <span className="text-xs text-slate-400">
+                total {formatCLP(expense.amount * expense.installment_total!)}
+              </span>
+            </>
           )}
           <span className="text-xs text-slate-400">pagó {expense.payer_name}</span>
         </div>
