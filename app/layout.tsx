@@ -5,7 +5,7 @@ const geist = Geist({ subsets: ['latin'] })
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <title>Gastos App</title>
         <meta name="description" content="Registro de gastos compartidos" />

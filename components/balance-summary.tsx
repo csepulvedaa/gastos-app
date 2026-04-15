@@ -1,14 +1,38 @@
 import { calculateBalance, formatCLP } from '@/lib/balance'
 import type { Expense } from '@/types'
 
+interface FutureInstallment {
+  amount: number
+  split: string
+  paid_by: string
+}
+
 interface Props {
   expenses: Expense[]
   cristobalId: string
   valentinaId: string
+  futureInstallments: FutureInstallment[]
 }
 
-export default function BalanceSummary({ expenses, cristobalId, valentinaId }: Props) {
+export default function BalanceSummary({ expenses, cristobalId, valentinaId, futureInstallments }: Props) {
   const balance = calculateBalance(expenses, cristobalId, valentinaId)
+
+  // Total pending debt from future installments (what each person will owe in coming months)
+  let cristobalFutureOwes = 0
+  let valentinaFutureOwes = 0
+  for (const fi of futureInstallments) {
+    if (fi.split === 'lent') {
+      if (fi.paid_by === cristobalId) valentinaFutureOwes += fi.amount
+      else cristobalFutureOwes += fi.amount
+    } else if (fi.split === '70_30') {
+      cristobalFutureOwes += fi.amount * 0.7
+      valentinaFutureOwes += fi.amount * 0.3
+    } else if (fi.split === '50_50') {
+      cristobalFutureOwes += fi.amount * 0.5
+      valentinaFutureOwes += fi.amount * 0.5
+    }
+  }
+  const hasFutureDebt = cristobalFutureOwes > 0 || valentinaFutureOwes > 0
 
   const transferText =
     balance.transferDirection === 'settled'
@@ -50,6 +74,24 @@ export default function BalanceSummary({ expenses, cristobalId, valentinaId }: P
         <span className="text-sm text-slate-500">Total gastado este mes</span>
         <span className="font-bold text-slate-800">{formatCLP(balance.totalSpent)}</span>
       </div>
+
+      {hasFutureDebt && (
+        <div className="bg-amber-50 rounded-lg border border-amber-100 p-3 space-y-1.5">
+          <p className="text-xs font-medium text-amber-700">Deuda acumulada próximos meses</p>
+          {valentinaFutureOwes > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-slate-500">Valentina debe</span>
+              <span className="text-sm font-semibold text-slate-800">{formatCLP(Math.round(valentinaFutureOwes))}</span>
+            </div>
+          )}
+          {cristobalFutureOwes > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-slate-500">Cristóbal debe</span>
+              <span className="text-sm font-semibold text-slate-800">{formatCLP(Math.round(cristobalFutureOwes))}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

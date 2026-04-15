@@ -88,7 +88,7 @@ export default function HistoryPage() {
       ) : (
         <>
           {cristobal && valentina && expenses.length > 0 && (
-            <BalanceSummary expenses={expenses} cristobalId={cristobal.id} valentinaId={valentina.id} />
+            <BalanceSummary expenses={expenses} cristobalId={cristobal.id} valentinaId={valentina.id} futureInstallments={[]} />
           )}
           <ExpenseList expenses={expenses} currentUserId={userId} />
         </>
