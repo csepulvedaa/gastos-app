@@ -24,9 +24,15 @@ CREATE TABLE IF NOT EXISTS expenses (
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Installment columns (nullable — regular expenses leave these NULL)
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS installment_group_id UUID;
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS installment_index    INT CHECK (installment_index > 0);
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS installment_total    INT CHECK (installment_total > 1);
+
 -- Índices para queries frecuentes
-CREATE INDEX IF NOT EXISTS idx_expenses_date    ON expenses (expense_date DESC);
-CREATE INDEX IF NOT EXISTS idx_expenses_paid_by ON expenses (paid_by);
+CREATE INDEX IF NOT EXISTS idx_expenses_date         ON expenses (expense_date DESC);
+CREATE INDEX IF NOT EXISTS idx_expenses_paid_by      ON expenses (paid_by);
+CREATE INDEX IF NOT EXISTS idx_expenses_installment  ON expenses (installment_group_id) WHERE installment_group_id IS NOT NULL;
 
 -- ─────────────────────────────────────────────────────────────
 -- Row Level Security

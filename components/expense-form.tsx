@@ -13,6 +13,8 @@ import { Calendar } from 'lucide-react'
 import { CATEGORY_ICONS, CATEGORY_LABELS, SPLIT_LABELS, SPLIT_DESCRIPTIONS } from '@/lib/constants'
 import type { Category, SplitType, Profile } from '@/types'
 
+const INSTALLMENT_OPTIONS = [2, 3, 6, 12]
+
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as Category[]
 const SPLITS = Object.keys(SPLIT_LABELS) as SplitType[]
 
@@ -33,6 +35,19 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
   const [split, setSplit] = useState<SplitType>('70_30')
   const [paidBy, setPaidBy] = useState(currentUser.id)
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [isInstallment, setIsInstallment] = useState(false)
+  const [installmentTotal, setInstallmentTotal] = useState(3)
+
+  /** Returns YYYY-MM-01 for the next month — default start date for installments. */
+  function nextMonthFirst(): string {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() + 1)
+    return d.toISOString().split('T')[0]
+  }
+
+  const [installmentStartDate, setInstallmentStartDate] = useState(nextMonthFirst)
+  const installmentDateRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,7 +63,15 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
     const res = await fetch('/api/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: amountNum, description, category, split, paid_by: paidBy, expense_date: date }),
+      body: JSON.stringify({
+        amount: amountNum,
+        description,
+        category,
+        split,
+        paid_by: paidBy,
+        expense_date: isInstallment ? installmentStartDate : date,
+        ...(isInstallment && { installment_total: installmentTotal }),
+      }),
     })
 
     if (!res.ok) {
@@ -136,24 +159,85 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
         </RadioGroup>
       </div>
 
-      {/* Fecha */}
-      <div className="space-y-2">
-        <Label htmlFor="date">Fecha</Label>
-        <div
-          className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 text-sm cursor-pointer"
-          onClick={() => dateRef.current?.showPicker()}
-        >
-          <input
-            ref={dateRef}
-            id="date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            className="flex-1 bg-transparent outline-none [color-scheme:light] [&::-webkit-calendar-picker-indicator]:hidden"
-          />
-          <Calendar className="h-4 w-4 text-slate-400 shrink-0 pointer-events-none" />
+      {/* Fecha — only shown for regular (non-installment) expenses */}
+      {!isInstallment && (
+        <div className="space-y-2">
+          <Label htmlFor="date">Fecha</Label>
+          <div
+            className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 text-sm cursor-pointer"
+            onClick={() => dateRef.current?.showPicker()}
+          >
+            <input
+              ref={dateRef}
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              className="flex-1 bg-transparent outline-none [color-scheme:light] [&::-webkit-calendar-picker-indicator]:hidden"
+            />
+            <Calendar className="h-4 w-4 text-slate-400 shrink-0 pointer-events-none" />
+          </div>
         </div>
+      )}
+
+      {/* Cuotas */}
+      <div className="space-y-3">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isInstallment}
+            onChange={(e) => setIsInstallment(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-300 accent-blue-600"
+          />
+          <span className="text-sm font-medium text-slate-700">¿En cuotas?</span>
+        </label>
+
+        {isInstallment && (
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 space-y-3">
+            <div className="space-y-2">
+              <Label className="text-xs text-slate-500">Número de cuotas</Label>
+              <div className="flex gap-2">
+                {INSTALLMENT_OPTIONS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setInstallmentTotal(n)}
+                    className={`flex-1 rounded-md border py-1.5 text-sm font-medium transition-colors ${
+                      installmentTotal === n
+                        ? 'border-blue-500 bg-blue-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {n}x
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="installment-start" className="text-xs text-slate-500">Primera cuota</Label>
+              <div
+                className="flex h-10 w-full items-center rounded-md border border-input bg-white px-3 text-sm cursor-pointer"
+                onClick={() => installmentDateRef.current?.showPicker()}
+              >
+                <input
+                  ref={installmentDateRef}
+                  id="installment-start"
+                  type="date"
+                  value={installmentStartDate}
+                  onChange={(e) => setInstallmentStartDate(e.target.value)}
+                  required
+                  className="flex-1 bg-transparent outline-none [color-scheme:light] [&::-webkit-calendar-picker-indicator]:hidden"
+                />
+                <Calendar className="h-4 w-4 text-slate-400 shrink-0 pointer-events-none" />
+              </div>
+              <p className="text-xs text-slate-400">
+                Se registrarán {installmentTotal} cuotas, una por mes
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

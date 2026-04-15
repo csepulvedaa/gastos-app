@@ -29,25 +29,58 @@ export async function GET(request: Request) {
   return NextResponse.json(expenses)
 }
 
+/** Adds `n` months to a YYYY-MM-DD string, preserving the day (clamped to month end). */
+function addMonths(dateStr: string, n: number): string {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const d = new Date(year, month - 1 + n, 1)
+  const maxDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+  d.setDate(Math.min(day, maxDay))
+  return d.toISOString().split('T')[0]
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
   const body = await request.json()
-  const { amount, description, category, split, paid_by, expense_date } = body
+  const { amount, description, category, split, paid_by, expense_date, installment_total } = body
 
   if (!amount || amount <= 0) return NextResponse.json({ error: 'Monto inválido' }, { status: 400 })
   if (!description?.trim()) return NextResponse.json({ error: 'Descripción requerida' }, { status: 400 })
   if (!['70_30', '50_50', 'personal'].includes(split)) return NextResponse.json({ error: 'Split inválido' }, { status: 400 })
+
+  const baseDate = expense_date ?? new Date().toISOString().split('T')[0]
+  const paidBy = paid_by ?? user.id
+  const installments = Number(installment_total)
+  const isInstallment = installments >= 2
+
+  if (isInstallment) {
+    const groupId = crypto.randomUUID()
+    const rows = Array.from({ length: installments }, (_, i) => ({
+      amount: Math.round(amount),
+      description: description.trim(),
+      category: category ?? 'other',
+      split,
+      paid_by: paidBy,
+      expense_date: addMonths(baseDate, i),
+      installment_group_id: groupId,
+      installment_index: i + 1,
+      installment_total: installments,
+    }))
+
+    const { data, error } = await supabase.from('expenses').insert(rows).select()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data, { status: 201 })
+  }
 
   const { data, error } = await supabase.from('expenses').insert({
     amount: Math.round(amount),
     description: description.trim(),
     category: category ?? 'other',
     split,
-    paid_by: paid_by ?? user.id,
-    expense_date: expense_date ?? new Date().toISOString().split('T')[0],
+    paid_by: paidBy,
+    expense_date: baseDate,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

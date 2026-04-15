@@ -27,6 +27,9 @@ export interface Expense {
   split: SplitType
   expense_date: string
   created_at: string
+  installment_group_id?: string | null
+  installment_index?: number | null
+  installment_total?: number | null
 }
 
 export interface BalanceResult {
