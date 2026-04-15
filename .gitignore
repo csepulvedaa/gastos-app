@@ -3,6 +3,9 @@
 # Documentación local de Claude (no subir al repo)
 /docs
 
+#Favicon package
+/faviconPackage
+
 # dependencies
 /node_modules
 /.pnp
