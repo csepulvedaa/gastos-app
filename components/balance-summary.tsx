@@ -54,6 +54,14 @@ export default function BalanceSummary({ expenses, cristobalId, valentinaId, fut
         {balance.transferDirection !== 'settled' && (
           <p className="text-3xl font-bold mt-1">{formatCLP(balance.transferAmount)}</p>
         )}
+        {hasFutureDebt && balance.transferDirection !== 'settled' && (
+          <p className="text-xs text-slate-400 mt-2">
+            {balance.transferDirection === 'valentina_to_cristobal'
+              ? `+ ${formatCLP(Math.round(valentinaFutureOwes))} en cuotas futuras`
+              : `+ ${formatCLP(Math.round(cristobalFutureOwes))} en cuotas futuras`
+            }
+          </p>
+        )}
       </div>
 
       {/* Desglose */}
@@ -74,24 +82,6 @@ export default function BalanceSummary({ expenses, cristobalId, valentinaId, fut
         <span className="text-sm text-slate-500">Total gastado este mes</span>
         <span className="font-bold text-slate-800">{formatCLP(balance.totalSpent)}</span>
       </div>
-
-      {hasFutureDebt && (
-        <div className="bg-amber-50 rounded-lg border border-amber-100 p-3 space-y-1.5">
-          <p className="text-xs font-medium text-amber-700">Deuda acumulada próximos meses</p>
-          {valentinaFutureOwes > 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-slate-500">Valentina debe</span>
-              <span className="text-sm font-semibold text-slate-800">{formatCLP(Math.round(valentinaFutureOwes))}</span>
-            </div>
-          )}
-          {cristobalFutureOwes > 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-slate-500">Cristóbal debe</span>
-              <span className="text-sm font-semibold text-slate-800">{formatCLP(Math.round(cristobalFutureOwes))}</span>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

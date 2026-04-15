@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { Pencil, Trash2 } from 'lucide-react'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -16,9 +17,10 @@ import type { Expense } from '@/types'
 interface Props {
   expense: Expense
   currentUserId: string
+  onDeleted?: () => void
 }
 
-export default function ExpenseCard({ expense, currentUserId }: Props) {
+export default function ExpenseCard({ expense, currentUserId, onDeleted }: Props) {
   const [deleting, setDeleting] = useState(false)
   const router = useRouter()
   const isOwner = currentUserId === expense.paid_by
@@ -33,7 +35,7 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
       ? `/api/expenses/${expense.id}?deleteGroup=true`
       : `/api/expenses/${expense.id}`
     await fetch(url, { method: 'DELETE' })
-    router.refresh()
+    onDeleted ? onDeleted() : router.refresh()
   }
 
   return (
@@ -65,6 +67,14 @@ export default function ExpenseCard({ expense, currentUserId }: Props) {
 
       <div className="flex items-center gap-2 shrink-0">
         <span className="font-semibold text-slate-800">{formatCLP(expense.amount)}</span>
+        {isOwner && (
+          <Link
+            href={`/edit/${expense.id}`}
+            className="text-slate-300 hover:text-blue-400 transition-colors p-1"
+          >
+            <Pencil size={15} />
+          </Link>
+        )}
         {isOwner && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
