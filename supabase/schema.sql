@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   description  TEXT        NOT NULL,
   category     TEXT        NOT NULL DEFAULT 'other',
   split        TEXT        NOT NULL DEFAULT '70_30'
-                           CHECK (split IN ('70_30', '50_50', 'personal')),
+                           CHECK (split IN ('70_30', '50_50', 'personal', 'lent')),
   expense_date DATE        NOT NULL DEFAULT CURRENT_DATE,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );

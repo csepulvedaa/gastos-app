@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
   if (!amount || amount <= 0) return NextResponse.json({ error: 'Monto inválido' }, { status: 400 })
   if (!description?.trim()) return NextResponse.json({ error: 'Descripción requerida' }, { status: 400 })
-  if (!['70_30', '50_50', 'personal'].includes(split)) return NextResponse.json({ error: 'Split inválido' }, { status: 400 })
+  if (!['70_30', '50_50', 'personal', 'lent'].includes(split)) return NextResponse.json({ error: 'Split inválido' }, { status: 400 })
 
   const baseDate = expense_date ?? new Date().toISOString().split('T')[0]
   const paidBy = paid_by ?? user.id

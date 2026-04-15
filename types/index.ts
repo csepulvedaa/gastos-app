@@ -1,4 +1,4 @@
-export type SplitType = '70_30' | '50_50' | 'personal'
+export type SplitType = '70_30' | '50_50' | 'personal' | 'lent'
 
 export type Category =
   | 'groceries'
