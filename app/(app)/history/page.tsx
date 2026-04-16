@@ -87,7 +87,13 @@ export default function HistoryPage() {
           {cristobal && valentina && expenses.length > 0 && (
             <BalanceSummary expenses={expenses} cristobalId={cristobal.id} valentinaId={valentina.id} futureInstallments={[]} />
           )}
-          <ExpenseList expenses={expenses} currentUserId={userId} onDeleted={() => setRefreshKey(k => k + 1)} />
+          <ExpenseList
+            expenses={expenses}
+            currentUserId={userId}
+            onDeleted={() => setRefreshKey(k => k + 1)}
+            cristobalId={cristobal?.id}
+            profiles={profiles.map((p) => ({ id: p.id, name: p.name }))}
+          />
         </>
       )}
     </div>
