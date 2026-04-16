@@ -5,6 +5,8 @@ interface Props {
   expenses: Expense[]
   currentUserId: string
   onDeleted?: () => void
+  cristobalId?: string
+  profiles?: { id: string; name: string }[]
 }
 
 function groupByDate(expenses: Expense[]) {
@@ -21,7 +23,7 @@ function formatDateHeader(dateStr: string) {
   return date.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export default function ExpenseList({ expenses, currentUserId, onDeleted }: Props) {
+export default function ExpenseList({ expenses, currentUserId, onDeleted, cristobalId, profiles }: Props) {
   if (expenses.length === 0) {
     return (
       <div className="text-center py-12 text-slate-400">
@@ -43,7 +45,7 @@ export default function ExpenseList({ expenses, currentUserId, onDeleted }: Prop
           </p>
           <div className="space-y-2">
             {grouped[date].map((expense) => (
-              <ExpenseCard key={expense.id} expense={expense} currentUserId={currentUserId} onDeleted={onDeleted} />
+              <ExpenseCard key={expense.id} expense={expense} currentUserId={currentUserId} onDeleted={onDeleted} cristobalId={cristobalId} profiles={profiles} />
             ))}
           </div>
         </div>

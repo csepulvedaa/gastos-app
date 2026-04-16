@@ -81,7 +81,12 @@ export default async function DashboardPage() {
 
       <div>
         <h2 className="text-sm font-semibold text-slate-600 mb-3">Gastos del mes</h2>
-        <ExpenseList expenses={expensesList} currentUserId={user.id} />
+        <ExpenseList
+          expenses={expensesList}
+          currentUserId={user.id}
+          cristobalId={cristobal?.id}
+          profiles={profiles?.map((p) => ({ id: p.id, name: p.name }))}
+        />
       </div>
     </div>
   )
