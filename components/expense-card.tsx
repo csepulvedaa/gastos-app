@@ -154,7 +154,7 @@ export default function ExpenseCard({ expense, currentUserId, onDeleted, cristob
 
       {/* Detail sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-8" aria-describedby={undefined}>
           <SheetHeader className="text-left mb-4">
             <div className="flex items-center gap-3">
               <span className="text-3xl">{CATEGORY_ICONS[expense.category] ?? '📦'}</span>
