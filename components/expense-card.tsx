@@ -25,6 +25,16 @@ interface Props {
   profiles?: { id: string; name: string }[]
 }
 
+/** Returns the display label for a split, making "personal" show the actual payer's name. */
+function getSplitLabel(expense: Expense, currentUserId: string, profiles?: { id: string; name: string }[]): string {
+  if (expense.split === 'personal') {
+    if (expense.paid_by === currentUserId) return 'Personal (solo yo)'
+    const payer = profiles?.find((p) => p.id === expense.paid_by)
+    return payer ? `Personal (solo ${payer.name})` : 'Personal'
+  }
+  return SPLIT_LABELS[expense.split]
+}
+
 function getSplitShares(expense: Expense, cristobalId: string, valentinaId: string) {
   const { amount, split, paid_by } = expense
   const otherId = paid_by === cristobalId ? valentinaId : cristobalId
@@ -83,7 +93,7 @@ export default function ExpenseCard({ expense, currentUserId, onDeleted, cristob
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-xs text-slate-400">{CATEGORY_LABELS[expense.category]}</span>
             <Badge variant="outline" className="text-xs py-0">
-              {SPLIT_LABELS[expense.split]}
+              {getSplitLabel(expense, currentUserId, profiles)}
             </Badge>
             {isInstallment && (
               <>
@@ -173,7 +183,7 @@ export default function ExpenseCard({ expense, currentUserId, onDeleted, cristob
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400">Tipo de división</p>
-                <p className="text-sm font-medium text-slate-700">{SPLIT_LABELS[expense.split]}</p>
+                <p className="text-sm font-medium text-slate-700">{getSplitLabel(expense, currentUserId, profiles)}</p>
                 <p className="text-xs text-slate-400">{SPLIT_DESCRIPTIONS[expense.split]}</p>
               </div>
               <div className="text-right">
