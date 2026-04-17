@@ -54,11 +54,14 @@ export default function ExpenseCard({ expense, currentUserId, onDeleted, cristob
     onDeleted ? onDeleted() : router.refresh()
   }
 
-  // Compute split shares for the detail sheet
-  const valentinaProfile = profiles?.find((p) => p.id !== cristobalId)
-  const showDetail = !!cristobalId && !!valentinaProfile
+  // Compute split shares for the detail sheet.
+  // Identify by name so the 70/30 obligation is always correct regardless of
+  // which account is currently logged in (either person can pay expenses).
+  const cristobalProfileId = profiles?.find((p) => p.name === 'Cristóbal')?.id
+  const valentinaProfileId = profiles?.find((p) => p.name !== 'Cristóbal')?.id
+  const showDetail = !!cristobalId && !!cristobalProfileId && !!valentinaProfileId
   const shares = showDetail
-    ? getSplitShares(expense, cristobalId!, valentinaProfile!.id)
+    ? getSplitShares(expense, cristobalProfileId!, valentinaProfileId!)
     : null
 
   const dateLabel = new Date(expense.expense_date + 'T12:00:00').toLocaleDateString('es-CL', {
