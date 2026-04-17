@@ -241,8 +241,8 @@ export default function StatsPage() {
                 <YAxis tickFormatter={formatM} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f1f5f9' }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey={p1.name} stackId="a" fill={BLUE} radius={[0, 0, 0, 0]} />
-                <Bar dataKey={p2.name} stackId="a" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={p1.name} fill={BLUE} radius={[4, 4, 0, 0]} />
+                <Bar dataKey={p2.name} fill="#7c3aed" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
