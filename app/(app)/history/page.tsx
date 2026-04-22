@@ -61,8 +61,8 @@ export default function HistoryPage() {
 
   const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 
-  const cristobal = profiles.find((p) => p.id === userId)
-  const valentina = profiles.find((p) => p.id !== userId)
+  const cristobal = profiles.find((p) => /cristóbal|cristobal/i.test(p.name))
+  const valentina = profiles.find((p) => /valentina/i.test(p.name))
 
   return (
     <div className="p-4 space-y-6">
