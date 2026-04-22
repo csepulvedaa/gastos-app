@@ -39,8 +39,9 @@ export default async function DashboardPage() {
     supabase.from('settlements').select('*').eq('year', year).eq('month', month).maybeSingle(),
   ])
 
-  const cristobal = (profiles as Profile[])?.find((p) => p.id === user.id)
-  const valentina = (profiles as Profile[])?.find((p) => p.id !== user.id)
+  const cristobal = (profiles as Profile[])?.find((p) => /cristóbal|cristobal/i.test(p.name))
+  const valentina = (profiles as Profile[])?.find((p) => /valentina/i.test(p.name))
+  const currentUser = (profiles as Profile[])?.find((p) => p.id === user.id)
 
   const expensesList: Expense[] = (expenses ?? []).map((e: any) => ({
     ...e,
@@ -52,7 +53,7 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between pt-2">
         <div>
           <h1 className="text-xl font-bold text-slate-800 capitalize">{monthName}</h1>
-          <p className="text-sm text-slate-400">Hola, {cristobal?.name ?? user.email} 👋</p>
+          <p className="text-sm text-slate-400">Hola, {currentUser?.name ?? user.email} 👋</p>
         </div>
         <Button asChild size="sm">
           <Link href="/add">+ Agregar</Link>
