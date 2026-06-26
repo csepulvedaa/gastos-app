@@ -26,19 +26,20 @@ function parseRetryDelay(err: unknown): number {
 }
 
 const PROMPT_TEMPLATE = `
-Eres un extractor de datos de emails del banco BCI de Chile.
+Eres un extractor de datos de emails de notificación de compra de bancos chilenos.
 
 EMAIL:
 {EMAIL_BODY}
 
-Formato del email BCI:
-- "Número tarjeta crédito    ****XXXX"
-- "Monto    USD 57,72"  o  "Monto    $ 42.990"
-- "Fecha    DD/MM/YYYY"
-- "Hora    HH:MM horas"
-- "Comercio    nombre del comercio"
+Puede ser de alguno de estos bancos:
 
-Extrae los datos. Limpia el nombre del comercio (capitaliza bien, quita texto basura como "LU" o códigos de país al final).
+BCI: campos "Número tarjeta crédito ****XXXX", "Monto $ X" o "Monto USD X", "Fecha DD/MM/YYYY", "Hora HH:MM horas", "Comercio nombre"
+
+MachBank: campos "Comercio NOMBRE", "Monto CLP $ X", "Últimos 4 dígitos de la tarjeta XXXX", "Fecha y hora DD-MM-YYYY HH:MM"
+
+Banco de Chile: texto libre como "compra por $X con Tarjeta de Crédito ****XXXX en COMERCIO el DD/MM/YYYY HH:MM"
+
+Extrae los datos. Limpia el nombre del comercio (capitaliza bien, quita códigos de país, prefijos de pago como "LINK DE PAGO", etc).
 
 Sugiere split según tipo de comercio:
 - "70_30": supermercado (Jumbo, Lider, Santa Isabel, Unimarc), farmacia, ferretería, hogar, cuentas, servicios básicos
@@ -49,8 +50,8 @@ Sugiere categoría:
 - groceries: supermercado, minimarket, almacén
 - dining: restaurante, delivery, café, bar, fast food
 - transport: Uber, taxi, bencina, peaje, Transantiago, metro
-- health: farmacia, médico, dentista, clínica
-- entertainment: cine, concierto, juegos, streaming, apps de entretención
+- health: farmacia, médico, dentista, clínica, isapre
+- entertainment: cine, concierto, juegos, streaming, apps
 - utilities: luz, agua, gas, internet, teléfono
 - travel: hotel, aerolínea, Booking, Airbnb
 - other: cualquier otra cosa
@@ -69,10 +70,9 @@ Responde SOLO con JSON (sin markdown, sin texto extra):
 }
 
 Reglas:
-- Si el monto es en CLP, pon "amount" como entero sin decimales ni puntos. original_amount y original_currency pueden ser null / "CLP".
-- Si el monto es en USD u otra moneda, pon "amount": null, "original_amount": 57.72, "original_currency": "USD".
-- La fecha en formato ISO: "DD/MM/YYYY" → "YYYY-MM-DD".
-- Si el email NO es una notificación de compra (ej: publicidad, aviso de deuda), responde exactamente: null
+- amount: entero en CLP sin decimales. Si es moneda extranjera: amount=null, original_amount=valor numérico, original_currency="USD" (u otra).
+- Fecha ISO: cualquier formato de fecha → "YYYY-MM-DD".
+- Si el email NO es una notificación de compra (aviso de deuda, publicidad, pago de tarjeta), responde exactamente: null
 `.trim()
 
 export async function parseTransaction(emailBody: string, maxRetries = 3): Promise<ParsedTransaction | null> {

@@ -1,26 +1,22 @@
-name: Import BCI Expenses
+name: Import Bank Expenses
 
 on:
   schedule:
     - cron: '0 1 * * *'  # 01:00 UTC = 22:00 Chile (UTC-3)
-  workflow_dispatch:      # Permite correrlo manualmente desde GitHub
+  workflow_dispatch:      # Run manually from GitHub Actions tab
 
 jobs:
-  import:
+  import-cristobal:
+    name: Cristóbal (BCI)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Import BCI expenses
-        run: npm run import
+      - run: npm ci
+      - run: npm run import -- --user cristobal
         env:
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
           GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
@@ -29,3 +25,23 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           CRISTOBAL_USER_ID: ${{ secrets.CRISTOBAL_USER_ID }}
+
+  import-valentina:
+    name: Valentina (MachBank + Banco de Chile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run import -- --user valentina
+        env:
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN_VALENTINA: ${{ secrets.GMAIL_REFRESH_TOKEN_VALENTINA }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          VALENTINA_USER_ID: ${{ secrets.VALENTINA_USER_ID }}
