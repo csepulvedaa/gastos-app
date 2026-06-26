@@ -45,6 +45,7 @@ export async function PATCH(
       category: expenseData.category ?? 'other',
       split: action === 'personal' ? 'personal' : expenseData.split,
       expense_date: expenseData.expense_date,
+      visible_in_shared: expenseData.visible_in_shared ?? false,
     })
     .select()
     .single()

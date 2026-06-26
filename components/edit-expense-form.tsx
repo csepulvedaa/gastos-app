@@ -45,6 +45,7 @@ export default function EditExpenseForm({ expense, currentUser, otherUser }: Pro
   const [paidBy, setPaidBy] = useState(expense.paid_by)
   const [date, setDate] = useState(expense.expense_date)
   const [remainingCount, setRemainingCount] = useState(currentRemaining)
+  const [visibleInShared, setVisibleInShared] = useState(expense.visible_in_shared ?? false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -63,6 +64,7 @@ export default function EditExpenseForm({ expense, currentUser, otherUser }: Pro
       description,
       category,
       split,
+      visible_in_shared: split === 'personal' ? visibleInShared : false,
     }
 
     if (scope === 'single') {
@@ -226,6 +228,22 @@ export default function EditExpenseForm({ expense, currentUser, otherUser }: Pro
             </p>
           )}
         </div>
+      )}
+
+      {/* Visible en compartidos — solo para gastos personales */}
+      {split === 'personal' && (
+        <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+          <input
+            type="checkbox"
+            checked={visibleInShared}
+            onChange={e => setVisibleInShared(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-blue-600"
+          />
+          <div>
+            <p className="text-sm font-medium text-slate-800">Visible en historial compartido</p>
+            <p className="text-xs text-slate-400">Valentina lo puede ver, pero no afecta el balance</p>
+          </div>
+        </label>
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
