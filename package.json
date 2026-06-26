@@ -7,9 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "import": "tsx scripts/import-cc-expenses.ts",
-    "import:dry": "tsx scripts/import-cc-expenses.ts --dry-run",
-    "auth:gmail": "tsx scripts/auth-gmail.ts"
+    "import": "tsx scripts/import-cc-expenses.ts --user cristobal",
+    "import:dry": "tsx scripts/import-cc-expenses.ts --user cristobal --dry-run",
+    "import:valentina": "tsx scripts/import-cc-expenses.ts --user valentina",
+    "import:valentina:dry": "tsx scripts/import-cc-expenses.ts --user valentina --dry-run",
+    "auth:gmail": "tsx scripts/auth-gmail.ts",
+    "auth:gmail:valentina": "tsx scripts/auth-gmail.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
