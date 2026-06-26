@@ -83,6 +83,40 @@ CREATE POLICY "settlements_insert" ON settlements
 CREATE POLICY "settlements_delete" ON settlements
   FOR DELETE USING (auth.uid() = from_user OR auth.uid() = to_user);
 
+-- 4. Transacciones de tarjeta (importadas desde email BCI)
+CREATE TABLE IF NOT EXISTS card_transactions (
+  id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id             UUID        NOT NULL REFERENCES profiles(id),
+  email_message_id    TEXT        NOT NULL UNIQUE,  -- Gmail message ID, para deduplicación
+  merchant            TEXT        NOT NULL,
+  amount              INTEGER,    -- en CLP; null si es moneda extranjera sin convertir
+  original_amount     NUMERIC,    -- monto original si no es CLP (ej: 57.72)
+  original_currency   TEXT        NOT NULL DEFAULT 'CLP',
+  transaction_date    DATE        NOT NULL,
+  transaction_time    TEXT,       -- "21:15"
+  card_last4          TEXT,       -- "0049"
+  status              TEXT        NOT NULL DEFAULT 'pending'
+                      CHECK (status IN ('pending', 'added_shared', 'added_personal', 'ignored')),
+  expense_id          UUID        REFERENCES expenses(id) ON DELETE SET NULL,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_card_transactions_user_status
+  ON card_transactions (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_card_transactions_date
+  ON card_transactions (transaction_date DESC);
+
+ALTER TABLE card_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "card_transactions_select" ON card_transactions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "card_transactions_insert" ON card_transactions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "card_transactions_update" ON card_transactions
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
 -- ─────────────────────────────────────────────────────────────
 -- Seed: correr DESPUÉS de crear los usuarios en Auth > Users
 -- Reemplazar los UUIDs con los generados por Supabase

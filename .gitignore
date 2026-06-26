@@ -3,6 +3,11 @@
 # Documentación local de Claude (no subir al repo)
 /docs
 
+# Scripts locales de importación
+/scripts/credentials.json
+/scripts/.processed-emails
+/scripts/lib/.processed-emails
+
 #Favicon package
 /faviconPackage
 

@@ -32,6 +32,24 @@ export interface Expense {
   installment_total?: number | null
 }
 
+export type CardTransactionStatus = 'pending' | 'added_shared' | 'added_personal' | 'ignored'
+
+export interface CardTransaction {
+  id: string
+  user_id: string
+  email_message_id: string
+  merchant: string
+  amount: number | null
+  original_amount: number | null
+  original_currency: string
+  transaction_date: string
+  transaction_time: string | null
+  card_last4: string | null
+  status: CardTransactionStatus
+  expense_id: string | null
+  created_at: string
+}
+
 export interface BalanceResult {
   totalSpent: number
   cristobalPaid: number
