@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 ALTER TABLE expenses ADD COLUMN IF NOT EXISTS installment_group_id UUID;
 ALTER TABLE expenses ADD COLUMN IF NOT EXISTS installment_index    INT CHECK (installment_index > 0);
 ALTER TABLE expenses ADD COLUMN IF NOT EXISTS installment_total    INT CHECK (installment_total > 1);
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS visible_in_shared   BOOLEAN NOT NULL DEFAULT false;
 
 -- Índices para queries frecuentes
 CREATE INDEX IF NOT EXISTS idx_expenses_date         ON expenses (expense_date DESC);

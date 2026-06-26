@@ -37,6 +37,7 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [isInstallment, setIsInstallment] = useState(false)
   const [installmentTotal, setInstallmentTotal] = useState(3)
+  const [visibleInShared, setVisibleInShared] = useState(false)
 
   /** Returns YYYY-MM-01 for the next month — default start date for installments. */
   function nextMonthFirst(): string {
@@ -71,6 +72,7 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
         paid_by: paidBy,
         expense_date: isInstallment ? installmentStartDate : date,
         ...(isInstallment && { installment_total: installmentTotal }),
+        visible_in_shared: split === 'personal' ? visibleInShared : false,
       }),
     })
 
@@ -158,6 +160,22 @@ export default function ExpenseForm({ currentUser, otherUser }: Props) {
           ))}
         </RadioGroup>
       </div>
+
+      {/* Visible en compartidos — solo para gastos personales */}
+      {split === 'personal' && (
+        <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+          <input
+            type="checkbox"
+            checked={visibleInShared}
+            onChange={e => setVisibleInShared(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-blue-600"
+          />
+          <div>
+            <p className="text-sm font-medium text-slate-800">Visible en historial compartido</p>
+            <p className="text-xs text-slate-400">Valentina lo puede ver, pero no afecta el balance</p>
+          </div>
+        </label>
+      )}
 
       {/* Fecha — only shown for regular (non-installment) expenses */}
       {!isInstallment && (

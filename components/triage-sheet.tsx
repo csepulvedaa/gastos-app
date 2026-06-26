@@ -34,6 +34,7 @@ export default function TriageSheet({ transaction, open, onOpenChange, onTriaged
   const [split, setSplit] = useState<SplitType>('70_30')
   const [paidBy, setPaidBy] = useState(currentUser.id)
   const [date, setDate] = useState('')
+  const [visibleInShared, setVisibleInShared] = useState(false)
   const dateRef = useRef<HTMLInputElement>(null)
 
   function initForm() {
@@ -44,6 +45,7 @@ export default function TriageSheet({ transaction, open, onOpenChange, onTriaged
     setSplit('70_30')
     setPaidBy(currentUser.id)
     setDate(transaction.transaction_date)
+    setVisibleInShared(false)
   }
 
   function handleOpenChange(open: boolean) {
@@ -68,7 +70,7 @@ export default function TriageSheet({ transaction, open, onOpenChange, onTriaged
     e.preventDefault()
     const amountNum = parseInt(amount.replace(/\D/g, ''), 10)
     if (!amountNum) return
-    await patch('personal', { description, amount: amountNum, expense_date: date, paid_by: currentUser.id })
+    await patch('personal', { description, amount: amountNum, expense_date: date, paid_by: currentUser.id, visible_in_shared: visibleInShared })
   }
 
   async function handleSharedSubmit(e: React.FormEvent) {
@@ -210,6 +212,19 @@ export default function TriageSheet({ transaction, open, onOpenChange, onTriaged
               </div>
 
               <DateField id="p-date" />
+
+              <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={visibleInShared}
+                  onChange={e => setVisibleInShared(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-blue-600"
+                />
+                <div>
+                  <p className="text-sm font-medium text-slate-800">Visible en historial compartido</p>
+                  <p className="text-xs text-slate-400">Valentina lo puede ver, pero no afecta el balance</p>
+                </div>
+              </label>
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Guardando...' : 'Guardar como personal'}

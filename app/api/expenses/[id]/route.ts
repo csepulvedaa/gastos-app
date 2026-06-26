@@ -14,7 +14,7 @@ export async function PATCH(
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
   const body = await request.json()
-  const { scope, amount, description, category, split, expense_date, paid_by, new_remaining_count } = body
+  const { scope, amount, description, category, split, expense_date, paid_by, new_remaining_count, visible_in_shared } = body
 
   if (!amount || amount <= 0) return NextResponse.json({ error: 'Monto inválido' }, { status: 400 })
   if (!description?.trim()) return NextResponse.json({ error: 'Descripción requerida' }, { status: 400 })
@@ -29,7 +29,7 @@ export async function PATCH(
   if (!expense) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
   if (expense.paid_by !== user.id) return NextResponse.json({ error: 'Sin permiso' }, { status: 403 })
 
-  const fields = { amount: Math.round(amount), description: description.trim(), category: category ?? 'other', split }
+  const fields = { amount: Math.round(amount), description: description.trim(), category: category ?? 'other', split, ...(visible_in_shared !== undefined && { visible_in_shared }) }
 
   if (scope === 'group_forward' && expense.installment_group_id) {
     const groupId = expense.installment_group_id

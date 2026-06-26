@@ -66,7 +66,7 @@ export default function HistoryPage() {
   const cristobal = profiles.find((p) => /cristóbal|cristobal/i.test(p.name))
   const valentina = profiles.find((p) => /valentina/i.test(p.name))
 
-  const sharedExpenses = expenses.filter(e => e.split !== 'personal')
+  const sharedExpenses = expenses.filter(e => e.split !== 'personal' || e.visible_in_shared)
   const personalExpenses = expenses.filter(e => e.split === 'personal' && e.paid_by === userId)
 
   const visibleExpenses = view === 'personal' ? personalExpenses : sharedExpenses

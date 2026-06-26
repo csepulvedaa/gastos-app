@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
   const body = await request.json()
-  const { amount, description, category, split, paid_by, expense_date, installment_total } = body
+  const { amount, description, category, split, paid_by, expense_date, installment_total, visible_in_shared } = body
 
   if (!amount || amount <= 0) return NextResponse.json({ error: 'Monto inválido' }, { status: 400 })
   if (!description?.trim()) return NextResponse.json({ error: 'Descripción requerida' }, { status: 400 })
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
       installment_group_id: groupId,
       installment_index: i + 1,
       installment_total: installments,
+      visible_in_shared: visible_in_shared ?? false,
     }))
 
     console.log('[POST /api/expenses] inserting installments:', JSON.stringify(rows, null, 2))
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
     split,
     paid_by: paidBy,
     expense_date: baseDate,
+    visible_in_shared: visible_in_shared ?? false,
   }
   console.log('[POST /api/expenses] inserting:', JSON.stringify(payload, null, 2))
   const { data, error } = await supabase.from('expenses').insert(payload).select().single()

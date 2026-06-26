@@ -30,6 +30,7 @@ export interface Expense {
   installment_group_id?: string | null
   installment_index?: number | null
   installment_total?: number | null
+  visible_in_shared?: boolean
 }
 
 export type CardTransactionStatus = 'pending' | 'added_shared' | 'added_personal' | 'ignored'
