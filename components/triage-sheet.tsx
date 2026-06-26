@@ -70,7 +70,7 @@ export default function TriageSheet({ transaction, open, onOpenChange, onTriaged
     e.preventDefault()
     const amountNum = parseInt(amount.replace(/\D/g, ''), 10)
     if (!amountNum) return
-    await patch('personal', { description, amount: amountNum, expense_date: date, paid_by: currentUser.id, visible_in_shared: visibleInShared })
+    await patch('personal', { description, amount: amountNum, category, expense_date: date, paid_by: currentUser.id, visible_in_shared: visibleInShared })
   }
 
   async function handleSharedSubmit(e: React.FormEvent) {
@@ -209,6 +209,22 @@ export default function TriageSheet({ transaction, open, onOpenChange, onTriaged
               <div className="space-y-1.5">
                 <Label htmlFor="p-amount">Monto CLP</Label>
                 <Input id="p-amount" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Categoría</Label>
+                <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {CATEGORY_ICONS[cat]} {CATEGORY_LABELS[cat]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <DateField id="p-date" />
