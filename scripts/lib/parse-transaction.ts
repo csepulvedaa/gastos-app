@@ -13,8 +13,17 @@ export interface ParsedTransaction {
   suggested_split: SplitType
 }
 
-const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-const model = genai.getGenerativeModel({ model: 'gemini-2.0-flash' })
+function getModel() {
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+    .getGenerativeModel({ model: 'gemini-2.5-flash' })
+}
+
+/** Extracts the suggested retry delay in ms from a Gemini 429 error message. */
+function parseRetryDelay(err: unknown): number {
+  const msg = err instanceof Error ? err.message : String(err)
+  const match = msg.match(/retryDelay["\s:]+(\d+(?:\.\d+)?)s/)
+  return match ? Math.ceil(parseFloat(match[1]) * 1000) + 500 : 15000
+}
 
 const PROMPT_TEMPLATE = `
 Eres un extractor de datos de emails del banco BCI de Chile.
@@ -66,21 +75,38 @@ Reglas:
 - Si el email NO es una notificación de compra (ej: publicidad, aviso de deuda), responde exactamente: null
 `.trim()
 
-export async function parseTransaction(emailBody: string): Promise<ParsedTransaction | null> {
+export async function parseTransaction(emailBody: string, maxRetries = 3): Promise<ParsedTransaction | null> {
   const prompt = PROMPT_TEMPLATE.replace('{EMAIL_BODY}', emailBody.slice(0, 3000))
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text().trim()
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await getModel().generateContent(prompt)
+      const text = result.response.text().trim()
 
-  if (text === 'null') return null
+      if (text === 'null') return null
 
-  // Strip markdown code fences if present
-  const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
+      const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
+      try {
+        return JSON.parse(clean) as ParsedTransaction
+      } catch {
+        console.warn('  ⚠  Gemini devolvió JSON inválido:', text.slice(0, 200))
+        return null
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      const is429 = msg.includes('429') || msg.includes('Too Many Requests')
+      const is503 = msg.includes('503') || msg.includes('Service Unavailable')
 
-  try {
-    return JSON.parse(clean) as ParsedTransaction
-  } catch {
-    console.warn('  ⚠  Gemini devolvió JSON inválido:', text.slice(0, 200))
-    return null
+      if ((is429 || is503) && attempt < maxRetries) {
+        const waitMs = is429 ? parseRetryDelay(err) : attempt * 5000
+        console.warn(`  ⏳ ${is429 ? 'Rate limit' : 'Servicio ocupado'} — esperando ${(waitMs / 1000).toFixed(1)}s (intento ${attempt}/${maxRetries})...`)
+        await new Promise(r => setTimeout(r, waitMs))
+        continue
+      }
+
+      throw err
+    }
   }
+
+  throw new Error(`Gemini falló después de ${maxRetries} intentos`)
 }

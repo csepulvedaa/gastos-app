@@ -19,8 +19,24 @@ function decodeBase64(data: string): string {
   return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8')
 }
 
+/** Strips HTML tags and decodes common HTML entities to plain text. */
+function htmlToText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')   // remove <style> blocks
+    .replace(/<script[\s\S]*?<\/script>/gi, '')  // remove <script> blocks
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(p|div|tr|td|th|li)[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')                    // strip remaining tags
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ').replace(/&oacute;/g, 'ó').replace(/&ntilde;/g, 'ñ')
+    .replace(/&#\d+;/g, ' ')
+    .replace(/[ \t]+/g, ' ')                     // collapse horizontal whitespace
+    .replace(/\n{3,}/g, '\n\n')                  // collapse blank lines
+    .trim()
+}
+
 function extractBody(payload: any): string {
-  // Prefer text/plain, fall back to text/html, then first available part
+  // Prefer text/plain, fall back to text/html stripped to plain text
   if (!payload) return ''
 
   if (payload.mimeType === 'text/plain' && payload.body?.data) {
@@ -31,14 +47,21 @@ function extractBody(payload: any): string {
     const plainPart = payload.parts.find((p: any) => p.mimeType === 'text/plain')
     if (plainPart?.body?.data) return decodeBase64(plainPart.body.data)
 
-    // Recurse into multipart
+    // Try HTML part and strip tags
+    const htmlPart = payload.parts.find((p: any) => p.mimeType === 'text/html')
+    if (htmlPart?.body?.data) return htmlToText(decodeBase64(htmlPart.body.data))
+
+    // Recurse into multipart (e.g. multipart/alternative inside multipart/mixed)
     for (const part of payload.parts) {
       const text = extractBody(part)
       if (text) return text
     }
   }
 
-  if (payload.body?.data) return decodeBase64(payload.body.data)
+  if (payload.body?.data) {
+    const raw = decodeBase64(payload.body.data)
+    return payload.mimeType === 'text/html' ? htmlToText(raw) : raw
+  }
 
   return ''
 }
