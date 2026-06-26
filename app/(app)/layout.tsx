@@ -8,12 +8,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect('/login')
 
+  const { count: pendingCount } = await supabase
+    .from('card_transactions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'pending')
+
   return (
     <div className="min-h-screen flex flex-col max-w-lg mx-auto">
       <main className="flex-1 pb-20">
         {children}
       </main>
-      <NavBar />
+      <NavBar pendingCount={pendingCount ?? 0} />
     </div>
   )
 }

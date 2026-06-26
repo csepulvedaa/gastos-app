@@ -18,6 +18,7 @@ import { usdToCLP } from './lib/exchange-rate.js'
 
 // ── Args ─────────────────────────────────────────────────────────────────────
 const isDryRun = process.argv.includes('--dry-run')
+const isDebug = process.argv.includes('--debug')
 const hoursIdx = process.argv.indexOf('--hours')
 const hoursBack = hoursIdx !== -1 ? parseInt(process.argv[hoursIdx + 1], 10) : 48
 
@@ -79,7 +80,7 @@ async function main() {
       }
     }
 
-    // Parsear con Gemini
+    // Parsear con Gemini (retry automático en 429)
     let tx
     try {
       tx = await parseTransaction(email.body)
@@ -90,7 +91,18 @@ async function main() {
     }
 
     if (!tx) {
-      console.log('   ⏭  No es una notificación de compra, saltando.\n')
+      console.log('   ⏭  No es una notificación de compra, saltando.')
+      if (isDebug) console.log('   [body]:\n' + email.body.slice(0, 800) + '\n   ---\n')
+      else console.log()
+      skipped++
+      continue
+    }
+
+    // Detectar resultados con campos null (Gemini parseó pero no extrajo datos)
+    if (!tx.merchant || !tx.transaction_date) {
+      console.log('   ⚠  Gemini no extrajo datos — formato de email no reconocido.')
+      if (isDebug) console.log('   [body]:\n' + email.body.slice(0, 800) + '\n   ---\n')
+      else console.log('   Corre con --debug para ver el body del email.\n')
       skipped++
       continue
     }
