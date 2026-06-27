@@ -2,7 +2,7 @@ name: Import Bank Expenses
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 01:00 UTC = 22:00 Chile (UTC-3)
+    - cron: '0 1,7,13,19 * * *'  # 01:00, 07:00, 13:00, 19:00 UTC = cada 6h
   workflow_dispatch:      # Run manually from GitHub Actions tab
 
 jobs:
